@@ -4,36 +4,32 @@ using UnityEngine;
 
 public class Spawner : MonoBehaviour
 {
-    [SerializeField] GameObject trashPrefab;
-    [SerializeField] GameObject recyclablePrefab;
-
-    private static float TIME_IT_SHOULD_TAKE = 1.5f;
-    private static float ANGLE_TO_SHOOT_AT = 60.0f;
-    private static Vector2 directionToShootAt = new Vector2(Mathf.Cos(ANGLE_TO_SHOOT_AT), Mathf.Sin(ANGLE_TO_SHOOT_AT));
+    public GameObject trash;
+    private int numPiecesOfTrash = 0;
+    private float time = 0.0f;
+    private static float spawnRate = 8.0f;
+    private static float trashRange = 5.0f;
+    private static int maxPiecesOfTrash = 10;
+    public GameObject mObjToShoot;
+    public GameObject mObjDest;
+    private float timer;
+    private static Vector2 pos;
 
     // Start is called before the first frame update
-    void Start()
-    {
-
+    void Start() {
+        timer = 0.0f;
+        pos = mObjToShoot.transform.position;
     }
 
     // Update is called once per frame
-    void Update()
-    {
-
+    void Update() {
+        time += Time.deltaTime;
+        if ((time > spawnRate) && (numPiecesOfTrash < maxPiecesOfTrash)) {
+            time = 0.0f;
+            Instantiate(trash, new Vector3(Random.Range(-trashRange, trashRange), 0, 0), Quaternion.identity);
+            numPiecesOfTrash += 1;
+        }
+        // objToShoot.transform.RotateAround(((objDest.transform.position - objToShoot.transform.position) / 2), new Vector3(0, 0, 1), -20 * Time.deltaTime);
     }
 
-    public static void ShootObjectAtArc(GameObject objToShoot, GameObject objDest)
-    {
-        Rigidbody2D newRigidBody = objToShoot.AddComponent<Rigidbody2D>();
-
-        Vector3 initialPosition3D = objToShoot.transform.position;
-        Vector3 finalPosition3D = objDest.transform.position;
-
-        Vector2 initialPosition = new Vector2(initialPosition3D.x, initialPosition3D.y);
-        Vector2 finalPosition = new Vector2(finalPosition3D.x, finalPosition3D.y);
-
-        Vector2 scalar = (finalPosition - initialPosition - (0.5f * Physics2D.gravity * TIME_IT_SHOULD_TAKE * TIME_IT_SHOULD_TAKE)) / (directionToShootAt * TIME_IT_SHOULD_TAKE);
-        Debug.Log(scalar);
-    }
 }
