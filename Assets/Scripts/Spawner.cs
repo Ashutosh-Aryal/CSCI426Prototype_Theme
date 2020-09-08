@@ -4,32 +4,65 @@ using UnityEngine;
 
 public class Spawner : MonoBehaviour
 {
-    public GameObject trash;
-    private int numPiecesOfTrash = 0;
-    private float time = 0.0f;
-    private static float spawnRate = 8.0f;
-    private static float trashRange = 5.0f;
-    private static int maxPiecesOfTrash = 10;
-    public GameObject mObjToShoot;
-    public GameObject mObjDest;
-    private float timer;
-    private static Vector2 pos;
+    [SerializeField] GameObject trashObject;
+    [SerializeField] GameObject recycleObject;
 
-    // Start is called before the first frame update
-    void Start() {
-        timer = 0.0f;
-        pos = mObjToShoot.transform.position;
-    }
+    private static float SPAWN_Y_POINT = 5.9f;
+    private static int currentNumRetrievables = 0;
+    private static float spawnTimer = 2.0f;
+    private static float spawnRate = 2.0f;
+    private static float trashRange = 5.0f;
+    private static int MAX_NUM_RETRIEVABLES_IN_SCENE = 15;
+
+    public static HashSet<string> spawnedRetrievableNames = new HashSet<string>();
 
     // Update is called once per frame
     void Update() {
-        time += Time.deltaTime;
-        if ((time > spawnRate) && (numPiecesOfTrash < maxPiecesOfTrash)) {
-            time = 0.0f;
-            Instantiate(trash, new Vector3(Random.Range(-trashRange, trashRange), 0, 0), Quaternion.identity);
-            numPiecesOfTrash += 1;
+
+        spawnTimer += Time.deltaTime;
+        if ((spawnTimer > spawnRate) && (currentNumRetrievables < MAX_NUM_RETRIEVABLES_IN_SCENE)) {
+            spawnTimer = 0.0f;
+
+            float chance = Random.Range(0.0f, 1.0f);
+
+            GameObject retrievableObject;
+            string customName;
+
+            if(chance < 0.5f)
+            {
+                retrievableObject = trashObject;
+                int randIndex;
+
+                do
+                {
+                    randIndex = Random.Range(0, 1000);
+                    customName = MovementBehavior.trashObjectName + " (" + randIndex + ")";
+                } while (spawnedRetrievableNames.Contains(customName));
+
+
+
+            } else
+            {
+                retrievableObject = recycleObject;
+                int randIndex;
+
+                do
+                {
+                    randIndex = Random.Range(0, 1000);
+                    customName = MovementBehavior.recyclableObjectName + " (" + randIndex + ")";
+                } while (spawnedRetrievableNames.Contains(customName));
+            }
+
+            spawnedRetrievableNames.Add(customName);
+            GameObject createdObject = Instantiate(retrievableObject,  new Vector3(Random.Range(-trashRange, trashRange), SPAWN_Y_POINT, 0), Quaternion.identity);
+            createdObject.name = customName;
+            currentNumRetrievables += 1;
         }
-        // objToShoot.transform.RotateAround(((objDest.transform.position - objToShoot.transform.position) / 2), new Vector3(0, 0, 1), -20 * Time.deltaTime);
+    }
+
+    public static void DecrementNumRetrievables()
+    {
+        currentNumRetrievables--;
     }
 
 }

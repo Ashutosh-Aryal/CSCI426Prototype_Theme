@@ -41,14 +41,15 @@ public class MovementBehavior : MonoBehaviour
     private static KeyCode throwAwayButton = KeyCode.UpArrow;
     private static KeyCode attackButton = KeyCode.Space;
 
+    private static float MAX_DISTANCE = 1.2f;
     private static float MAX_VELOCITY = 5.0f;
     private static float PLAYER_X_LIMIT = 5.4f;
     private static float TIME_IT_SHOULD_TAKE = 1.5f;
     private static float ANGLE_TO_SHOOT_AT = 60.0f;
     private static Vector2 directionToShootAt;
 
-    private static string trashObjectName = "Trash";
-    private static string recyclableObjectName = "Recycling";
+    public static string trashObjectName = "Trash";
+    public static string recyclableObjectName = "Recycling";
 
     // Member variables
     private Rigidbody2D myRigidbody;
@@ -66,6 +67,8 @@ public class MovementBehavior : MonoBehaviour
 
     [SerializeField] GameObject trashCanObject;
     [SerializeField] GameObject recyclingCanObject;
+
+    //[SerializeField] AudioSource 
 
     enum ThrowState
     {
@@ -140,6 +143,12 @@ public class MovementBehavior : MonoBehaviour
 
         UpdateMovement();
         UpdateAnimation();
+
+        if (retrievableObjectsHeld.Count == 0)
+        {
+            throwState = ThrowState.CannotThrow;
+            currentlyHeldTrashType = TrashType.NotTrash;
+        }
     }
 
     private void UpdateMovement()
@@ -162,8 +171,12 @@ public class MovementBehavior : MonoBehaviour
         bool playerHoldsObjects = retrievableObjectsHeld.Count > 0;
 
         bool shouldThrowAwayTrash = isPressingThrowAwayButton && isWithinTriggerBounds && hasBeenQuarterSecondSinceLastShot && playerHoldsObjects;
-        if (shouldThrowAwayTrash) {
-            ThrowOutTrash();
+        if (isPressingThrowAwayButton)
+        {
+            if (shouldThrowAwayTrash)
+            {
+                ThrowOutTrash();
+            }
         }
 
         if (Input.GetKeyDown(attackButton)) {
@@ -232,8 +245,18 @@ public class MovementBehavior : MonoBehaviour
                 }
                 
                 if (objName.Contains(GetStringFromTrashType(currentlyHeldTrashType))) {
-                    GameObject.Find(objName).GetComponent<SpriteRenderer>().enabled = false;
-                    retrievableObjectsHeld.Add(objName);
+                    
+                    GameObject gameObj = GameObject.Find(objName);
+                    Vector3 differenceVector = gameObj.transform.position - gameObject.transform.position;
+
+                    bool withinPickUppableDistance = differenceVector.magnitude < MAX_DISTANCE;
+
+                    if(withinPickUppableDistance)
+                    {
+                        gameObj.GetComponent<SpriteRenderer>().enabled = false;
+                        retrievableObjectsHeld.Add(objName);
+                    } 
+                    
                     indicesToRemove.Add(x);
                 }
 
@@ -246,23 +269,37 @@ public class MovementBehavior : MonoBehaviour
         }
     }
 
+    private string prevName;
+
     private void ThrowOutTrash()
     {
+        bool canThrowLeft = throwState == ThrowState.CanThrowLeft;
         string objName = retrievableObjectsHeld[0];
 
+        if(prevName == objName)
+        {
+            retrievableObjectsHeld.RemoveAt(0);
+            return;
+        }
+
         GameObject srcObj = GameObject.Find(objName);
+
+        bool cannotThrowObject = canThrowLeft && currentlyHeldTrashType != TrashType.Trash;
+        cannotThrowObject |= !canThrowLeft && currentlyHeldTrashType != TrashType.Recyclable;
+
+        if(cannotThrowObject)
+        {
+            // TODO: Play sound effect for cannot throw object here
+            return;
+        }
+
+        prevName = objName;
         srcObj.GetComponent<SpriteRenderer>().enabled = true;
         srcObj.transform.position = gameObject.transform.position;
         GameObject destObj = (throwState == ThrowState.CanThrowLeft) ? trashCanObject : recyclingCanObject;
 
         ShootObjectAtArc(ref srcObj, destObj);
         retrievableObjectsHeld.RemoveAt(0);
-
-        if (retrievableObjectsHeld.Count == 0)
-        {
-            throwState = ThrowState.CannotThrow;
-            currentlyHeldTrashType = TrashType.NotTrash;
-        }
 
         shootTrashTimer = 0.0f;
     }
