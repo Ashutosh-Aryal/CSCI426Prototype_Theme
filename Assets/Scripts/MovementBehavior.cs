@@ -230,7 +230,7 @@ public class MovementBehavior : MonoBehaviour
     private void OnAttackKeyEvent(KeyState attackState)
     {
         if (retrievableObjectsHeld.Count != 0) {
-            // TODO: Play sound effect here to symbolize inability to attack
+            // TODO: Play sound effect for cannot attack here
             return;
         }
 
@@ -238,6 +238,8 @@ public class MovementBehavior : MonoBehaviour
             myCurrentAnimationType = AnimationType.StopAttacking;
         } else if (attackState == KeyState.KeyPressed) {
             myCurrentAnimationType = AnimationType.StartAttacking;
+
+            // TODO: Add sound effect play here for attack sound effect
 
             if(inRangeTargets.Count > 0)
             {
@@ -286,7 +288,7 @@ public class MovementBehavior : MonoBehaviour
             myCurrentAnimationType = AnimationType.StopCrouching;
         }
         else if (pickUpState == KeyState.KeyHeld) {
-            myRigidbody.velocity = new Vector2(0.0f, 0.0f); // TODO?: Might be useless?
+            myRigidbody.velocity = new Vector2(0.0f, 0.0f);
         }
         else /* if is PickUpPressed */ {
 
@@ -313,6 +315,8 @@ public class MovementBehavior : MonoBehaviour
                     {
                         gameObj.GetComponent<SpriteRenderer>().enabled = false;
                         retrievableObjectsHeld.Add(objName);
+                        
+                        // TODO: Play sound effect for picked up an object here
                     } 
                     
                     indicesToRemove.Add(x);
@@ -357,6 +361,9 @@ public class MovementBehavior : MonoBehaviour
         GameObject destObj = (throwState == ThrowState.CanThrowLeft) ? trashCanObject : recyclingCanObject;
 
         ShootObjectAtArc(ref srcObj, destObj);
+
+        // TODO: Play sound effect for successfully threw object towards trash
+
         retrievableObjectsHeld.Remove(objName);
 
         shootTrashTimer = 0.0f;

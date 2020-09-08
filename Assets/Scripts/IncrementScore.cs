@@ -21,6 +21,8 @@ public class IncrementScore : MonoBehaviour
     {
         if(collision.gameObject.name.Contains((isTrash)? MovementBehavior.trashObjectName : MovementBehavior.recyclableObjectName))
         {
+
+            //TODO: Add sound effect here for sound thats made when object actually goes into the trash
             currentScore++;
             UpdateScoreText();
             Destroy(collision.gameObject);

@@ -101,6 +101,8 @@ public class EnemyBehavior : MonoBehaviour
             isAttacking = true;
             myAnimator.SetBool(ATTACKING_ANIM_PARAMETER_KEY, isAttacking);
 
+            // TODO: Play sound for enemy flamethrower attack here
+
             Vector3 myPosition = gameObject.transform.position;
             Vector3 myScale = gameObject.transform.localScale;
 
