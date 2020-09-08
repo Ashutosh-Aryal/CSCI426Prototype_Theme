@@ -6,26 +6,34 @@ using UnityEngine.UI;
 public class IncrementScore : MonoBehaviour
 {
     [SerializeField] bool isTrash;
-    //[SerializeField] GameObject scoreObject;
+    [SerializeField] GameObject scoreObject;
 
-    private int currentScore = 0;
+    private static string SCORE_TEXT = "Score/Flower Health: ";
+    public static int currentScore = 0;
+    private static Text scoreText;
+
+    private void Start()
+    {
+        scoreText = scoreObject.GetComponent<Text>();
+    }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if(collision.gameObject.name.Contains((isTrash)? MovementBehavior.trashObjectName : MovementBehavior.recyclableObjectName))
         {
-
-            /*Text scoreText = scoreObject.GetComponent<Text>();
-
-            if(scoreText != null)
-            {
-                scoreText.text = "Score: " + currentScore;
-            }**/
-
+            currentScore++;
+            UpdateScoreText();
             Destroy(collision.gameObject);
             Spawner.spawnedRetrievableNames.Remove(collision.gameObject.name);
             Spawner.DecrementNumRetrievables();
         }
+    }
 
+    public static void UpdateScoreText()
+    {
+        if (scoreText != null)
+        {
+            scoreText.text = SCORE_TEXT + currentScore;
+        }
     }
 }

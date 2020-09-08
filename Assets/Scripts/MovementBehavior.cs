@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEditor.PackageManager;
 using UnityEngine;
-
+using UnityEngine.UI;
 
 enum TrashType
 {
@@ -48,6 +48,8 @@ public class MovementBehavior : MonoBehaviour
     private static float ANGLE_TO_SHOOT_AT = 60.0f;
     private static Vector2 directionToShootAt;
 
+    private static string objectTypePreString = "Currently Holding: ";
+
     public static string trashObjectName = "Trash";
     public static string recyclableObjectName = "Recycling";
 
@@ -60,6 +62,7 @@ public class MovementBehavior : MonoBehaviour
     private AnimationType myCurrentAnimationType;
 
     private float shootTrashTimer = 0.25f;
+    private bool handlePhysics = false;
 
     private List<string> retrievableObjectsHeld = new List<string>();
     private List<string> inRangeRetrievableObjects = new List<string>();
@@ -67,6 +70,9 @@ public class MovementBehavior : MonoBehaviour
 
     [SerializeField] GameObject trashCanObject;
     [SerializeField] GameObject recyclingCanObject;
+    [SerializeField] GameObject leftEnemy;
+    [SerializeField] GameObject rightEnemy;
+    [SerializeField] GameObject currentlyHeldTextObject;
 
     //[SerializeField] AudioSource 
 
@@ -80,53 +86,6 @@ public class MovementBehavior : MonoBehaviour
     private TrashType currentlyHeldTrashType = TrashType.NotTrash;
     private ThrowState throwState = ThrowState.CannotThrow;
 
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        GameObject collidingGameObject = collision.gameObject;
-
-        if (retrievableObjectsHeld.Contains(collidingGameObject.name)) {
-            return;
-        }
-
-        bool isTrash = collidingGameObject.CompareTag("retrievable");
-        bool isThrowTrigger = collidingGameObject.CompareTag("throwArea");
-        bool isTarget = collidingGameObject.CompareTag("target");
-
-        if (isTrash) {
-            inRangeRetrievableObjects.Add(collidingGameObject.name);
-        } else if (isThrowTrigger) {
-            if (collidingGameObject.name == "LeftTrigger") {
-                throwState = ThrowState.CanThrowLeft;
-            } else {
-                throwState = ThrowState.CanThrowRight;
-            }
-        } else if (isTarget) {
-            inRangeTargets.Add(collidingGameObject.name);
-        }
-    }
-
-    private void OnTriggerExit2D(Collider2D collision)
-    {
-        GameObject collidingGameObject = collision.gameObject;
-
-        if (retrievableObjectsHeld.Contains(collidingGameObject.name)) {
-            return;
-        }
-
-        bool isTrash = collidingGameObject.CompareTag("retrievable");
-        bool isThrowTrigger = collidingGameObject.CompareTag("throwArea");
-        bool isTarget = collidingGameObject.CompareTag("target");
-
-        if (isTrash) {
-            inRangeRetrievableObjects.Remove(collidingGameObject.name);
-        }
-        else if (isThrowTrigger) {
-            throwState = ThrowState.CannotThrow;
-        } else if (isTarget) {
-            inRangeTargets.Remove(collidingGameObject.name);
-        }
-    }
-
     void Start()
     {
         myRigidbody = gameObject.GetComponent<Rigidbody2D>();
@@ -138,6 +97,11 @@ public class MovementBehavior : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if(!handlePhysics)
+        {
+            Physics2D.IgnoreLayerCollision(gameObject.layer, EnemyBehavior.enemyLayer); handlePhysics = true;
+        }
+
         shootTrashTimer += Time.deltaTime;
         myPosition = gameObject.transform.position;
 
@@ -148,6 +112,68 @@ public class MovementBehavior : MonoBehaviour
         {
             throwState = ThrowState.CannotThrow;
             currentlyHeldTrashType = TrashType.NotTrash;
+            currentlyHeldTextObject.GetComponent<Text>().text = "Currently Holding: None";
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        GameObject collidingGameObject = collision.gameObject;
+
+        if (retrievableObjectsHeld.Contains(collidingGameObject.name))
+        {
+            return;
+        }
+
+        bool isTrash = collidingGameObject.CompareTag("retrievable");
+        bool isTarget = collidingGameObject.CompareTag("target");
+        bool isThrowTrigger = collidingGameObject.CompareTag("throwArea");
+
+        if (isTrash)
+        {
+            inRangeRetrievableObjects.Add(collidingGameObject.name);
+        }
+        else if (isThrowTrigger)
+        {
+            if (collidingGameObject.name == "LeftTrigger")
+            {
+                throwState = ThrowState.CanThrowLeft;
+            }
+            else
+            {
+                throwState = ThrowState.CanThrowRight;
+            }
+        }
+        else if (isTarget)
+        {
+            inRangeTargets.Add(collidingGameObject.name);
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        GameObject collidingGameObject = collision.gameObject;
+
+        if (retrievableObjectsHeld.Contains(collidingGameObject.name))
+        {
+            return;
+        }
+
+        bool isTrash = collidingGameObject.CompareTag("retrievable");
+        bool isThrowTrigger = collidingGameObject.CompareTag("throwArea");
+        bool isTarget = collidingGameObject.CompareTag("target");
+
+        if (isTrash)
+        {
+            inRangeRetrievableObjects.Remove(collidingGameObject.name);
+        }
+        else if (isThrowTrigger)
+        {
+            throwState = ThrowState.CannotThrow;
+        }
+        else if (isTarget)
+        {
+            inRangeTargets.Remove(collidingGameObject.name);
         }
     }
 
@@ -213,12 +239,43 @@ public class MovementBehavior : MonoBehaviour
         } else if (attackState == KeyState.KeyPressed) {
             myCurrentAnimationType = AnimationType.StartAttacking;
 
-            foreach (string targetName in inRangeTargets)
+            if(inRangeTargets.Count > 0)
             {
-                Destroy(GameObject.Find(targetName));
+                foreach(string objName in inRangeTargets)
+                {
+                    string parentName = GameObject.Find(objName).transform.parent.gameObject.name;
+
+                    EnemyBehavior enemyBehavior;
+                    if (leftEnemy.name == parentName)
+                    {
+                        enemyBehavior = leftEnemy.GetComponent<EnemyBehavior>();
+                    }
+                    else
+                    {
+                        enemyBehavior = rightEnemy.GetComponent<EnemyBehavior>();
+                    }
+
+                    enemyBehavior.OnHit();
+                }
+                inRangeTargets.Clear();
+            }
+        }
+    }
+
+    private void KillInRangeTargets()
+    {
+        foreach(string objName in inRangeTargets)
+        {
+            EnemyBehavior enemyBehavior;
+            if(leftEnemy.name == objName)
+            {
+                enemyBehavior = leftEnemy.GetComponent<EnemyBehavior>();
+            } else
+            {
+                enemyBehavior = rightEnemy.GetComponent<EnemyBehavior>();
             }
 
-            inRangeTargets.Clear();
+            enemyBehavior.OnHit();
         }
     }
 
@@ -242,6 +299,7 @@ public class MovementBehavior : MonoBehaviour
 
                 if (currentlyHeldTrashType == TrashType.NotTrash) {
                     currentlyHeldTrashType = (objName.Contains(trashObjectName)) ? TrashType.Trash : TrashType.Recyclable;
+                    currentlyHeldTextObject.GetComponent<Text>().text = objectTypePreString + GetStringFromTrashType(currentlyHeldTrashType);
                 }
                 
                 if (objName.Contains(GetStringFromTrashType(currentlyHeldTrashType))) {
@@ -276,13 +334,13 @@ public class MovementBehavior : MonoBehaviour
         bool canThrowLeft = throwState == ThrowState.CanThrowLeft;
         string objName = retrievableObjectsHeld[0];
 
-        if(prevName == objName)
+        GameObject srcObj = GameObject.Find(objName);
+
+        if (prevName == objName)
         {
-            retrievableObjectsHeld.RemoveAt(0);
+            retrievableObjectsHeld.Remove(objName);
             return;
         }
-
-        GameObject srcObj = GameObject.Find(objName);
 
         bool cannotThrowObject = canThrowLeft && currentlyHeldTrashType != TrashType.Trash;
         cannotThrowObject |= !canThrowLeft && currentlyHeldTrashType != TrashType.Recyclable;
@@ -299,7 +357,7 @@ public class MovementBehavior : MonoBehaviour
         GameObject destObj = (throwState == ThrowState.CanThrowLeft) ? trashCanObject : recyclingCanObject;
 
         ShootObjectAtArc(ref srcObj, destObj);
-        retrievableObjectsHeld.RemoveAt(0);
+        retrievableObjectsHeld.Remove(objName);
 
         shootTrashTimer = 0.0f;
     }
