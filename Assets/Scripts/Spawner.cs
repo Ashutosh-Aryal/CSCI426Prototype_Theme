@@ -7,7 +7,6 @@ public class Spawner : MonoBehaviour
     [SerializeField] GameObject trashObject;
     [SerializeField] GameObject recycleObject;
 
-    private static float SPAWN_Y_POINT = 5.9f;
     private static int currentNumRetrievables = 0;
     private static float spawnTimer = 2.0f;
     private static float spawnRate = 2.0f;
@@ -54,7 +53,7 @@ public class Spawner : MonoBehaviour
             }
 
             spawnedRetrievableNames.Add(customName);
-            GameObject createdObject = Instantiate(retrievableObject,  new Vector3(Random.Range(-trashRange, trashRange), SPAWN_Y_POINT, 0), Quaternion.identity);
+            GameObject createdObject = Instantiate(retrievableObject,  new Vector3(Random.Range(-trashRange, trashRange), gameObject.transform.position.y, 0), Quaternion.identity);
             createdObject.name = customName;
             currentNumRetrievables += 1;
         }

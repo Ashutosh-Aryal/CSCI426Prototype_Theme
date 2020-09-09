@@ -114,7 +114,6 @@ public class MovementBehavior : MonoBehaviour
 
         if (retrievableObjectsHeld.Count == 0)
         {
-            throwState = ThrowState.CannotThrow;
             currentlyHeldTrashType = TrashType.NotTrash;
             currentlyHeldTextObject.GetComponent<Text>().text = "Currently Holding: None";
         }

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class IncrementScore : MonoBehaviour
@@ -8,6 +9,7 @@ public class IncrementScore : MonoBehaviour
     [SerializeField] bool isTrash;
     [SerializeField] GameObject scoreObject;
 
+    private static string END_GAME_SCENE_NAME = "EndGameScene";
     private static string SCORE_TEXT = "Score/Flower Health: ";
     public static int currentScore = 0;
     private static Text scoreText;
@@ -32,6 +34,12 @@ public class IncrementScore : MonoBehaviour
             Destroy(collision.gameObject);
             Spawner.spawnedRetrievableNames.Remove(collision.gameObject.name);
             Spawner.DecrementNumRetrievables();
+
+            if(currentScore >= 50)
+            {
+                SceneManager.LoadScene(END_GAME_SCENE_NAME, LoadSceneMode.Single);
+            }
+
         }
     }
 

@@ -24,7 +24,7 @@ public class EnemyBehavior : MonoBehaviour
     private static float DIFFERENCE_IN_X_DIRECTION = 1.5f;
     private static float DIFFERENCE_IN_Y_DIRECTION = 0.55f;
     private static int DAMAGE = 1;
-    private static int SCORE_TO_START_ON = 0;
+    private static int SCORE_TO_START_ON = 25;
     private static int numEnemies = 0;
 
     public static int enemyLayer;
@@ -73,6 +73,11 @@ public class EnemyBehavior : MonoBehaviour
             myRigidbody.velocity = new Vector2((myPosition.x > 0)? - MOVEMENT_SPEED : MOVEMENT_SPEED, 0.0f);
         } else
         {
+            if(!flamethrowerSound.isPlaying)
+            {
+                flamethrowerSound.Play();
+                flamethrowerSound.loop = true;
+            }
             myRigidbody.velocity = Vector2.zero;
         }
     }
@@ -104,8 +109,6 @@ public class EnemyBehavior : MonoBehaviour
         {
             isAttacking = true;
             myAnimator.SetBool(ATTACKING_ANIM_PARAMETER_KEY, isAttacking);
-
-            flamethrowerSound.Play();
 
             Vector3 myPosition = gameObject.transform.position;
             Vector3 myScale = gameObject.transform.localScale;
