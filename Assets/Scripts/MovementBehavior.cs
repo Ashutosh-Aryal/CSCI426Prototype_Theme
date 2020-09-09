@@ -74,7 +74,11 @@ public class MovementBehavior : MonoBehaviour
     [SerializeField] GameObject rightEnemy;
     [SerializeField] GameObject currentlyHeldTextObject;
 
-    //[SerializeField] AudioSource 
+    [SerializeField] AudioSource wrongBinSound;
+    [SerializeField] AudioSource throwObjectSound;
+    [SerializeField] AudioSource canNotAttackSound;
+    [SerializeField] AudioSource attackSound;
+    [SerializeField] AudioSource pickUpObjectSound;
 
     enum ThrowState
     {
@@ -231,6 +235,7 @@ public class MovementBehavior : MonoBehaviour
     {
         if (retrievableObjectsHeld.Count != 0) {
             // TODO: Play sound effect for cannot attack here
+            canNotAttackSound.Play();
             return;
         }
 
@@ -240,6 +245,7 @@ public class MovementBehavior : MonoBehaviour
             myCurrentAnimationType = AnimationType.StartAttacking;
 
             // TODO: Add sound effect play here for attack sound effect
+            attackSound.Play();
 
             if(inRangeTargets.Count > 0)
             {
@@ -315,8 +321,9 @@ public class MovementBehavior : MonoBehaviour
                     {
                         gameObj.GetComponent<SpriteRenderer>().enabled = false;
                         retrievableObjectsHeld.Add(objName);
-                        
+
                         // TODO: Play sound effect for picked up an object here
+                        pickUpObjectSound.Play();
                     } 
                     
                     indicesToRemove.Add(x);
@@ -352,6 +359,7 @@ public class MovementBehavior : MonoBehaviour
         if(cannotThrowObject)
         {
             // TODO: Play sound effect for cannot throw object here
+            wrongBinSound.Play();
             return;
         }
 
@@ -363,6 +371,7 @@ public class MovementBehavior : MonoBehaviour
         ShootObjectAtArc(ref srcObj, destObj);
 
         // TODO: Play sound effect for successfully threw object towards trash
+        throwObjectSound.Play();
 
         retrievableObjectsHeld.Remove(objName);
 

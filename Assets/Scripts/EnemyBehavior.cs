@@ -29,6 +29,8 @@ public class EnemyBehavior : MonoBehaviour
 
     public static int enemyLayer;
 
+    [SerializeField] AudioSource flamethrowerSound;
+
     void Start()
     {
         numEnemies++;
@@ -92,6 +94,8 @@ public class EnemyBehavior : MonoBehaviour
         }
 
         stopTimer = Random.Range(8.0f, 12.0f);
+        if (flamethrowerSound.isPlaying)             // flamethrower sound effect stops playing when enemy is killed
+            flamethrowerSound.Stop();
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -101,7 +105,7 @@ public class EnemyBehavior : MonoBehaviour
             isAttacking = true;
             myAnimator.SetBool(ATTACKING_ANIM_PARAMETER_KEY, isAttacking);
 
-            // TODO: Play sound for enemy flamethrower attack here
+            flamethrowerSound.Play();
 
             Vector3 myPosition = gameObject.transform.position;
             Vector3 myScale = gameObject.transform.localScale;
@@ -120,7 +124,6 @@ public class EnemyBehavior : MonoBehaviour
             IncrementScore.currentScore -= DAMAGE;
             IncrementScore.UpdateScoreText();
         }
-
 
         damageTimer -= Time.deltaTime;
     }

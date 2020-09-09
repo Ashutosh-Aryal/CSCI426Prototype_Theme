@@ -12,6 +12,8 @@ public class IncrementScore : MonoBehaviour
     public static int currentScore = 0;
     private static Text scoreText;
 
+    [SerializeField] AudioSource trashInBinSound;
+
     private void Start()
     {
         scoreText = scoreObject.GetComponent<Text>();
@@ -23,6 +25,8 @@ public class IncrementScore : MonoBehaviour
         {
 
             //TODO: Add sound effect here for sound thats made when object actually goes into the trash
+            trashInBinSound.Play();
+
             currentScore++;
             UpdateScoreText();
             Destroy(collision.gameObject);
